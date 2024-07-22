@@ -1,0 +1,169 @@
+#include <iostream>
+#include <vector>
+#include <limits>
+#include <algorithm>
+
+using namespace std;
+
+const int INF = numeric_limits<int>::max();
+
+class Graph {
+private:
+    int V;
+    vector<vector<pair<int, int>>> adj;
+
+public:
+    Graph(int vertices) : V(vertices), adj(vertices) {}
+
+    void addEdge(int u, int v, int w) {
+        adj[u].push_back(make_pair(v, w));
+    }
+
+    vector<int> dijkstra(int start) {
+        vector<int> dist(V, INF);
+        vector<bool> visited(V, false);
+        vector<int> prev(V, -1);
+
+        dist[start] = 0;
+
+        int current = start;
+
+        while (true) {
+            for (const auto& neighbor : adj[current]) {
+                int v = neighbor.first;
+                int weight = neighbor.second;
+
+                if (!visited[v]) {
+                    int newDist = dist[current] + weight;
+                    if (newDist < dist[v]) {
+                        dist[v] = newDist;
+                        prev[v] = current;
+                    }
+                }
+            }
+
+            visited[current] = true;
+
+            if (all_of(visited.begin(), visited.end(), [](bool v) { return v; })) {
+                break;
+            }
+
+            int minDist = INF;
+            for (int i = 0; i < V; i++) {
+                if (!visited[i] && dist[i] < minDist) {
+                    minDist = dist[i];
+                    current = i;
+                }
+            }
+
+            if (minDist == INF) {
+                break;
+            }
+        }
+
+        return dist;
+    }
+
+    vector<int> getPath(int start, int end) {
+        vector<int> dist(V, INF);
+        vector<int> prev(V, -1);
+        vector<bool> visited(V, false);
+
+        dist[start] = 0;
+        int current = start;
+
+        while (true) {
+            for (const auto& neighbor : adj[current]) {
+                int v = neighbor.first;
+                int weight = neighbor.second;
+
+                if (!visited[v]) {
+                    int newDist = dist[current] + weight;
+                    if (newDist < dist[v]) {
+                        dist[v] = newDist;
+                        prev[v] = current;
+                    }
+                }
+            }
+
+            visited[current] = true;
+
+            if (current == end || all_of(visited.begin(), visited.end(), [](bool v) { return v; })) {
+                break;
+            }
+
+            int minDist = INF;
+            for (int i = 0; i < V; i++) {
+                if (!visited[i] && dist[i] < minDist) {
+                    minDist = dist[i];
+                    current = i;
+                }
+            }
+
+            if (minDist == INF) {
+                break;
+            }
+        }
+
+        vector<int> path;
+        if (dist[end] != INF) {
+            for (int at = end; at != -1; at = prev[at]) {
+                path.push_back(at);
+            }
+            reverse(path.begin(), path.end());
+        }
+
+        return path;
+    }
+};
+
+int main() {
+    Graph g(6);  
+
+    g.addEdge(0, 1, 10);
+    g.addEdge(0, 2, 1);
+    g.addEdge(0, 3, 3);
+    g.addEdge(1, 4, 2);
+    g.addEdge(2, 1, 1);
+    g.addEdge(2, 4, 8);
+    g.addEdge(2, 5, 4);
+    g.addEdge(3, 4, 4);
+    g.addEdge(3, 5, 2);
+    g.addEdge(4, 5, 7);
+    g.addEdge(5, 4, 9);
+
+    int start, end;
+    cout << "Enter the starting node (0 to 5): ";
+    cin >> start;
+
+    vector<int> shortestDistances = g.dijkstra(start);
+
+    cout << "Shortest distances from node " << start << " to all other nodes:" << endl;
+    for (int i = 0; i < 6; i++) {
+        if (i != start) {
+            if (shortestDistances[i] == INF) {
+                cout << "Node " << i << ": Unreachable" << endl;
+            } else {
+                cout << "Node " << i << ": " << shortestDistances[i] << endl;
+            }
+        }
+    }
+
+    cout << "\nEnter the ending node (0 to 5): ";
+    cin >> end;
+
+    vector<int> shortestPath = g.getPath(start, end);
+
+    if (shortestPath.empty()) {
+        cout << "There is no path from node " << start << " to node " << end << endl;
+    } else {
+        cout << "The shortest path from node " << start << " to node " << end << " is: ";
+        for (size_t i = 0; i < shortestPath.size(); ++i) {
+            cout << shortestPath[i];
+            if (i != shortestPath.size() - 1) cout << " -> ";
+        }
+        cout << "\nThe cost of the shortest path is: " << shortestDistances[end] << endl;
+    }
+
+    return 0;
+}
