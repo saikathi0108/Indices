@@ -1,0 +1,64 @@
+#include <iostream>
+#include <queue>
+#include <vector>
+#include <string>
+
+struct Node {
+    char data;
+    unsigned freq;
+    Node *left, *right;
+
+    Node(char data, unsigned freq) : data(data), freq(freq), left(nullptr), right(nullptr) {}
+};
+
+struct Compare {
+    bool operator()(Node* l, Node* r) {
+        return l->freq > r->freq;
+    }
+};
+
+void printCodes(Node* root, std::string str) {
+    if (!root)
+        return;
+
+    if (root->data != '$')
+        std::cout << str << " ";
+
+    printCodes(root->left, str + "0");
+    printCodes(root->right, str + "1");
+}
+
+Node* buildHuffmanTree(std::string S, int f[], int N) {
+    std::priority_queue<Node*, std::vector<Node*>, Compare> minHeap;
+
+
+    for (int i = 0; i < N; ++i)
+        minHeap.push(new Node(S[i], f[i]));
+
+
+    while (minHeap.size() != 1) {
+        Node *left = minHeap.top(); minHeap.pop();
+        Node *right = minHeap.top(); minHeap.pop();
+
+        Node *top = new Node('$', left->freq + right->freq);
+        top->left = left;
+        top->right = right;
+
+        minHeap.push(top);
+    }
+
+    return minHeap.top();
+}
+
+int main() {
+    std::string S = "abcdef";
+    int f[] = {5, 9, 12, 13, 16, 45};
+    int N = S.length();
+
+    Node* root = buildHuffmanTree(S, f, N);
+
+    std::cout << "Huffman Codes:\n";
+    printCodes(root, "");
+
+    return 0;
+}
